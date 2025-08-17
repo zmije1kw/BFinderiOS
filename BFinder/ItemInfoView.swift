@@ -10,10 +10,11 @@ import _MapKit_SwiftUI
 
 @available(iOS 17.0, *)
 struct ItemInfoView: View {
-    
+
     @State var lookAroundScene: MKLookAroundScene?
     @Binding var route: MKRoute?
     @Binding var selectedResult: MKMapItem?
+    @EnvironmentObject var favoritesManager: FavoritesManager
 
     func getLookAroundScene () {
         lookAroundScene = nil
@@ -38,15 +39,22 @@ struct ItemInfoView: View {
         .overlay(alignment: .bottomTrailing) {
             HStack {
                 if let selectedResult {
-                    Text ("\(selectedResult.name ?? "")")
+                    Text(selectedResult.name ?? "")
                     if let travelTime {
                         Text(travelTime)
                     }
+                    Button {
+                        favoritesManager.toggle(mapItem: selectedResult)
+                    } label: {
+                        Image(systemName: favoritesManager.isFavorite(selectedResult) ? "star.fill" : "star")
+                            .foregroundStyle(favoritesManager.isFavorite(selectedResult) ? .yellow : .white)
+                    }
+                    .buttonStyle(.borderless)
                 }
             }
             .font(.caption)
             .foregroundStyle(.white)
-            .padding (10)
+            .padding(10)
         }
         .onAppear {
             getLookAroundScene()
@@ -62,6 +70,7 @@ struct ItemInfoView: View {
 #Preview {
     if #available(iOS 17.0, *) {
         ItemInfoView(route: Binding.constant(nil), selectedResult: Binding.constant(.forCurrentLocation()))
+            .environmentObject(FavoritesManager())
     } else {
         EmptyView()
     }
